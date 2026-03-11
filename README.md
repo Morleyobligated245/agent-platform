@@ -1,8 +1,8 @@
 # Agent Platform — Budget-Aware Scheduling
 
-Mock funcional de una plataforma de agentes sobre Kubernetes que simula scheduling con budget awareness y reasignación automática por fallback de pools.
+Functional mock of an agent platform on Kubernetes that simulates scheduling with budget awareness and automatic reassignment via pool fallback.
 
-## Arquitectura
+## Architecture
 
 ```
                 ┌───────────────┐
@@ -21,23 +21,23 @@ Mock funcional de una plataforma de agentes sobre Kubernetes que simula scheduli
        Team Pool   Shared      Global
 ```
 
-**Flujo:**
-1. Se crea un `Task` CR con una skill requerida y un costo
-2. El `TaskController` pide al `Scheduler` que asigne un agente
-3. El `Scheduler` busca agentes con la skill, ordena por pool priority (team → shared → global)
-4. Si el agente tiene budget → lo asigna y deduce el costo
-5. Si no tiene budget → hace fallback al siguiente pool disponible
+**Flow:**
+1. A `Task` CR is created with a required skill and a cost
+2. The `TaskController` asks the `Scheduler` to assign an agent
+3. The `Scheduler` finds agents with the skill, sorts by pool priority (team → shared → global)
+4. If the agent has budget → assigns it and deducts the cost
+5. If it has no budget → falls back to the next available pool
 
 ## Custom Resources
 
-| CRD | Descripción |
+| CRD | Description |
 |-----|-------------|
-| **Agent** | Agente ejecutor con pool, skills y referencia a budget |
-| **Skill** | Capacidad ejecutable con imagen de container y costo en tokens |
-| **Budget** | Presupuesto con límite y tracking de uso |
-| **Task** | Tarea solicitada con skill requerida, costo y team |
+| **Agent** | Executor agent with pool, skills, and budget reference |
+| **Skill** | Executable capability with container image and token cost |
+| **Budget** | Budget with limit and usage tracking |
+| **Task** | Requested task with required skill, cost, and team |
 
-### Ejemplo de Agent
+### Agent Example
 ```yaml
 apiVersion: agents.platform/v1
 kind: Agent
@@ -50,7 +50,7 @@ spec:
   endpoint: http://agent-marketing:8080
 ```
 
-### Ejemplo de Task
+### Task Example
 ```yaml
 apiVersion: agents.platform/v1
 kind: Task
@@ -62,15 +62,15 @@ spec:
   team: marketing
 ```
 
-## Pools de Fallback
+## Fallback Pools
 
-Tres niveles con orden de prioridad:
+Three levels with priority order:
 
-1. **team** — agentes del mismo equipo (mayor prioridad)
-2. **shared** — agentes compartidos entre equipos
-3. **global** — agentes globales (menor prioridad)
+1. **team** — same team agents (highest priority)
+2. **shared** — shared agents across teams
+3. **global** — global agents (lowest priority)
 
-Cuando un agente no tiene budget suficiente, el scheduler busca automáticamente en el siguiente pool.
+When an agent doesn't have enough budget, the scheduler automatically searches the next pool.
 
 ## Stack
 
@@ -79,7 +79,7 @@ Cuando un agente no tiene budget suficiente, el scheduler busca automáticamente
 - **Budget state:** in-memory (mock de Redis)
 - **Tools:** kubectl, kustomize, make
 
-## Estructura del Proyecto
+## Project Structure
 
 ```
 agent-platform/
@@ -106,7 +106,7 @@ agent-platform/
 └── Makefile
 ```
 
-## Requisitos
+## Requirements
 
 - Go >= 1.21
 - Docker
@@ -118,19 +118,19 @@ agent-platform/
 
 ## Quick Start
 
-### 1. Crear cluster
+### 1. Create cluster
 
 ```bash
 make kind-create
 ```
 
-### 2. Instalar CRDs
+### 2. Install CRDs
 
 ```bash
 make install
 ```
 
-### 3. Build y deploy del controller
+### 3. Build and deploy the controller
 
 ```bash
 make docker-build IMG=agent-platform:dev
@@ -138,31 +138,31 @@ kind load docker-image agent-platform:dev --name agent-platform
 make deploy IMG=agent-platform:dev
 ```
 
-### 4. Deploy de recursos de ejemplo
+### 4. Deploy sample resources
 
 ```bash
 make deploy-samples
 ```
 
-### 5. Crear una task y ver el resultado
+### 5. Create a task and see the result
 
 ```bash
 make test-flow
 ```
 
-Output esperado:
+Expected output:
 
 ```
 NAME             SKILL       PHASE       ASSIGNEDAGENT     COST
 summarize-task   summarize   scheduled   agent-marketing   10
 ```
 
-## Test de Fallback
+## Fallback Test
 
-Crear múltiples tasks para agotar el budget del team y observar el fallback:
+Create multiple tasks to exhaust the team budget and observe the fallback:
 
 ```bash
-# Crear 10 tasks de costo 10 (total = 100 = límite del marketing-budget)
+# Create 10 tasks with cost 10 (total = 100 = marketing-budget limit)
 for i in $(seq 1 10); do
   kubectl apply -f - <<EOF
 apiVersion: agents.platform/v1
@@ -176,7 +176,7 @@ spec:
 EOF
 done
 
-# La task 11 debería hacer fallback a nlp-agent (shared pool)
+# Task 11 should fall back to nlp-agent (shared pool)
 kubectl apply -f - <<EOF
 apiVersion: agents.platform/v1
 kind: Task
@@ -188,7 +188,7 @@ spec:
   team: marketing
 EOF
 
-# Verificar
+# Verify
 kubectl get tasks task-overflow -o wide
 # → ASSIGNEDAGENT: nlp-agent (fallback!)
 
@@ -197,7 +197,7 @@ kubectl get budgets -o wide
 # → shared-budget:    USED=10,  REMAINING=490
 ```
 
-Logs del controller:
+Controller logs:
 
 ```
 agent budget exceeded, falling back  {"task":"task-overflow", "from":"marketing", "to":"nlp-agent"}
@@ -225,22 +225,22 @@ go test ./scheduler/ -v
 PASS
 ```
 
-## Comandos útiles
+## Useful Commands
 
-| Comando | Descripción |
+| Command | Description |
 |---------|-------------|
-| `make kind-create` | Crear cluster kind |
-| `make kind-delete` | Eliminar cluster kind |
-| `make install` | Instalar CRDs |
-| `make deploy IMG=agent-platform:dev` | Deploy del controller |
-| `make deploy-samples` | Deploy de agents, budgets, skills |
-| `make test-flow` | Crear task de prueba y ver resultado |
-| `make docker-build IMG=agent-platform:dev` | Build de imagen Docker |
-| `make kind-load` | Cargar imagen en kind |
-| `kubectl get tasks -o wide` | Ver tasks con agent asignado |
-| `kubectl get budgets -o wide` | Ver estado de budgets |
-| `kubectl get agents -o wide` | Ver estado de agentes |
-| `kubectl logs deploy/agent-platform-controller-manager -n agent-platform-system` | Ver logs |
+| `make kind-create` | Create kind cluster |
+| `make kind-delete` | Delete kind cluster |
+| `make install` | Install CRDs |
+| `make deploy IMG=agent-platform:dev` | Deploy the controller |
+| `make deploy-samples` | Deploy agents, budgets, skills |
+| `make test-flow` | Create test task and see result |
+| `make docker-build IMG=agent-platform:dev` | Build Docker image |
+| `make kind-load` | Load image into kind |
+| `kubectl get tasks -o wide` | View tasks with assigned agent |
+| `kubectl get budgets -o wide` | View budget status |
+| `kubectl get agents -o wide` | View agent status |
+| `kubectl logs deploy/agent-platform-controller-manager -n agent-platform-system` | View logs |
 
 ## Cleanup
 
