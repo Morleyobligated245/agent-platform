@@ -1,0 +1,9 @@
+apiVersion: agents.platform/v1
+kind: Budget
+metadata:
+  labels:
+    app.kubernetes.io/name: agent-platform
+    app.kubernetes.io/managed-by: kustomize
+  name: budget-sample
+spec:
+  # TODO(user): Add fields here

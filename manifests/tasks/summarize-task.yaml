@@ -1,0 +1,8 @@
+apiVersion: agents.platform/v1
+kind: Task
+metadata:
+  name: summarize-task
+spec:
+  skill: summarize
+  cost: 10
+  team: marketing

@@ -1,0 +1,8 @@
+bin/
+testbin/
+*.o
+*.exe
+*.swp
+.idea/
+.vscode/
+*.DS_Store

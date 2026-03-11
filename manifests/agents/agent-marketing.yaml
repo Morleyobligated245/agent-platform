@@ -1,0 +1,11 @@
+apiVersion: agents.platform/v1
+kind: Agent
+metadata:
+  name: agent-marketing
+spec:
+  pool: team
+  skills:
+    - summarize
+    - translate
+  budgetRef: marketing-budget
+  endpoint: http://agent-marketing:8080

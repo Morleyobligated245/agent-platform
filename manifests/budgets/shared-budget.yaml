@@ -1,0 +1,7 @@
+apiVersion: agents.platform/v1
+kind: Budget
+metadata:
+  name: shared-budget
+spec:
+  limit: 500
+  pool: shared

@@ -1,0 +1,12 @@
+apiVersion: agents.platform/v1
+kind: Agent
+metadata:
+  name: nlp-agent
+spec:
+  pool: shared
+  skills:
+    - summarize
+    - translate
+    - sentiment
+  budgetRef: shared-budget
+  endpoint: http://nlp-agent:8080
